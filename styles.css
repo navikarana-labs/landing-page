@@ -70,7 +70,7 @@ nav a:hover, nav a[aria-current="page"] { text-decoration: underline; text-decor
 .eyebrow { font-size: 10.8px; font-weight: 400; line-height: 1.6; letter-spacing: 0.065em; text-transform: uppercase; color: var(--muted); }
 
 /* Homepage */
-.hero { padding-block: clamp(48px, 5vw, 78px) 42px; }
+.hero { padding-block: clamp(48px, 5vw, 78px) 26px; }
 .hero-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-block: 14px 48px; }
 h1 { font-size: clamp(37.8px, 5.49vw, 70.2px); line-height: 1.08; letter-spacing: -0.065em; }
 .hero-mark { width: clamp(110px, 14vw, 180px); flex-shrink: 0; }
@@ -81,14 +81,16 @@ h1 { font-size: clamp(37.8px, 5.49vw, 70.2px); line-height: 1.08; letter-spacing
 .hero-attribution a { font-size: 16.2px; font-weight: 600; color: var(--muted); text-decoration: underline; text-decoration-color: var(--accent); }
 .hero-attribution a:hover { color: var(--fg); text-decoration: underline; text-decoration-color: var(--accent); }
 .section-row { display: grid; grid-template-columns: 1fr 2fr; gap: 40px; padding-block: 64px; }
+.section-row + .section-row { padding-top: 0; margin-top: -16px; }
 .section-row > .eyebrow { align-self: start; padding-top: 5px; color: var(--fg); font-size: 18px; letter-spacing: -0.02em; text-transform: none; }
 .section-content { max-width: 630px; font-size: 16.2px; }
 .section-content > p + p { margin-top: 20px; }
+.section-content > .update-date { margin-top: 4px; }
 .update-date { display: flex; align-items: center; gap: 0.45rem; color: var(--muted); font-size: 14.4px; }
 .update-date svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .section-content > p { color: var(--muted); }
 .section-content > .projects-lead { max-width: 32ch; color: var(--fg); font-size: clamp(20px, 2vw, 25px); line-height: 1.4; letter-spacing: -0.025em; }
-.text-link { display: inline-block; margin-top: 24px; font-size: 12.6px; }
+.text-link { display: inline-block; margin-top: 14px; font-size: 12.6px; }
 .section-content > .text-link { font-size: 14.4px; }
 .text-link span { display: inline-block; margin-left: 7px; }
 
