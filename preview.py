@@ -24,7 +24,8 @@ class PreviewHandler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    handler = partial(PreviewHandler, directory=str(Path(__file__).resolve().parent))
+    handler = partial(PreviewHandler, directory=str(
+        Path(__file__).resolve().parent))
     with ThreadingHTTPServer(("127.0.0.1", 8000), handler) as server:
         print("Preview: http://localhost:8000 (Ctrl+C to stop)")
         try:

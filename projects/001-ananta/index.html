@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Ananta | Navikarana Labs</title>
+    <meta name="description" content="A distributed embedded-control system designed to detect and diagnose failures, reassign critical responsibilities, and recover safely. A tracked robotic rover will serve as its initial test platform.">
+    <link rel="canonical" href="https://navikarana.io/projects/001-ananta/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Navikarana Labs">
+    <meta property="og:title" content="Project Ananta | Navikarana Labs">
+    <meta property="og:description" content="A distributed embedded-control system designed to detect and diagnose failures, reassign critical responsibilities, and recover safely. A tracked robotic rover will serve as its initial test platform.">
+    <meta property="og:url" content="https://navikarana.io/projects/001-ananta/">
+    <meta name="theme-color" content="#faf9f6">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../public/favicon/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../public/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="../../public/favicon/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="../../public/favicon/favicon-192.png">
+    <link rel="manifest" href="../../public/favicon/site.webmanifest">
+    <link rel="stylesheet" href="../../styles.css?v=71">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header container">
+      <div class="brand">
+        <a href="../../">
+          <img src="../../public/logo-full.svg" width="1103" height="240" alt="Nav&#299;kara&#7751;a Labs">
+        </a>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="../../">Home</a>
+        <a href="../">Projects</a>
+        <a href="../../contact/">Contact</a>
+        <a href="../../about/">About</a>
+      </nav>
+    </header>
+
+    <main id="main" class="container projects-page project-detail-page">
+      <header class="page-heading">
+        <div class="project-meta eyebrow">
+          <nav class="project-breadcrumb" aria-label="Breadcrumb">
+            <a href="../">Projects</a>
+            <span aria-hidden="true">/</span>
+            <span class="project-number" aria-current="page">Project 001</span>
+          </nav>
+          <span aria-hidden="true">&middot;</span>
+          <span class="project-status">In development</span>
+        </div>
+        <h1>Project Ananta</h1>
+        <p class="project-subtitle">Distributed Fault-Tolerant Robotic System</p>
+        <div class="project-tags" aria-label="Project topics">
+          <span>Robotics</span>
+          <span>Embedded Systems</span>
+          <span>Distributed Control</span>
+          <span>Fault Tolerance</span>
+          <span>Real-Time Systems</span>
+          <span>Embedded Networking</span>
+          <span>Resilient Systems</span>
+        </div>
+      </header>
+      <div class="prose">
+        <p>A distributed embedded-control system designed to detect and diagnose failures, reassign critical responsibilities, and recover safely. A tracked robotic rover will serve as its initial test platform.</p>
+      </div>
+
+      <section class="section-row" aria-labelledby="concept-heading">
+        <h2 id="concept-heading" class="eyebrow">The Concept</h2>
+        <figure class="concept-figure">
+          <img class="concept-image" src="../../public/projects/ananta/concept.png" width="1536" height="1024" alt="Concept illustration of a tracked robotic rover with a camera system">
+          <figcaption>AI-generated concept illustration of the robotic platform envisioned for Project Ananta. Final design may differ.</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-row" aria-labelledby="idea-heading">
+        <h2 id="idea-heading" class="eyebrow">The Idea</h2>
+        <div class="section-content prose">
+          <p>Even the most reliable systems can experience failures. Ananta explores how multiple embedded controllers can work together, monitor each other, and take over critical tasks when something goes wrong.</p>
+          <p>The idea is to build and test these mechanisms on a tracked robotic platform, while exploring how the same approach could be applied to systems beyond robotics.</p>
+        </div>
+      </section>
+
+      <section class="section-row" aria-labelledby="writing-heading">
+        <h2 id="writing-heading" class="eyebrow">Writing &amp; Resources</h2>
+        <div class="section-content prose">
+          <p><a href="https://loke.sh/blog/" target="_blank" rel="noopener noreferrer">Notes, articles, and updates</a> from the development of Project Ananta.</p>
+        </div>
+      </section>
+
+      <section class="section-row" aria-labelledby="direction-heading">
+        <h2 id="direction-heading" class="eyebrow">Initial Architecture</h2>
+        <div class="section-content prose">
+          <p>The initial version (v0.1) of Ananta is planned around four embedded controllers connected over a <a href="https://en.wikipedia.org/wiki/CAN_bus" target="_blank" rel="noopener noreferrer">CAN network</a>.</p>
+          <p>Two controllers handle motion control, with one acting as a backup. The other two handle motor actuation, allowing either to take over if its counterpart fails. Additional hardware supports system monitoring, diagnostics, and safe control handover.</p>
+          <p>The tracked rover will also feature a remotely controlled camera for live viewing and observing its surroundings, operating independently of the core control system.</p>
+          <p>The architecture is being designed to support fault recovery without depending on a single controller for every critical function.</p>
+        </div>
+      </section>
+
+      <section class="section-row" aria-labelledby="experiments-heading">
+        <h2 id="experiments-heading" class="eyebrow">Experiments</h2>
+        <div class="section-content prose">
+          <p>Ananta will be tested through controlled fault injection to study how the system detects failures, diagnoses their causes, and recovers.</p>
+          <p>A Raspberry Pi Pico will serve as an independent fault-injection controller, allowing us to deliberately introduce failures such as controller power loss, firmware hangs, and communication interruptions.</p>
+          <p>The experiments will focus on measuring:</p>
+          <ul>
+            <li>Failure-detection and recovery latency</li>
+            <li>Successful recovery across repeated tests</li>
+            <li>Accuracy of fault diagnosis</li>
+            <li>Control interruption and degraded operation</li>
+            <li>Communication and computational overhead</li>
+          </ul>
+          <p>The results, including failures and limitations, will be documented as development progresses.</p>
+        </div>
+      </section>
+
+      <section class="section-row" aria-labelledby="development-status-heading">
+        <h2 id="development-status-heading" class="eyebrow">Development Status</h2>
+        <div class="section-content prose">
+          <p>Project Ananta is currently in the planning and design stage, with the initial direction for v0.1 taking shape.</p>
+          <p>I&rsquo;ll be documenting the development process, progress, challenges, and findings through articles and build logs on my <a href="https://loke.sh/blog/" target="_blank" rel="noopener noreferrer">personal blog</a>.</p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer container">
+      <p class="footer-brand"><span class="copyright">&copy; 2026</span> Navikarana Labs <a class="footer-source" href="https://github.com/navikarana-labs/landing-page" target="_blank" rel="noopener noreferrer">[Source code]</a></p>
+      <nav aria-label="Footer navigation">
+        <a href="mailto:hello@navikarana.io" aria-label="Email hello@navikarana.io" title="hello@navikarana.io">Email</a>
+        <a class="footer-external" href="https://loke.sh/blog/" target="_blank" rel="noopener noreferrer">Writing <svg class="external-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11L11 5M6 5h5v5"/></svg></a>
+        <a class="footer-external" href="https://loke.sh/blog/newsletter/" target="_blank" rel="noopener noreferrer">Newsletter <svg class="external-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11L11 5M6 5h5v5"/></svg></a>
+        <a class="footer-external" href="https://github.com/navikarana-labs" target="_blank" rel="noopener noreferrer">GitHub <svg class="external-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11L11 5M6 5h5v5"/></svg></a>
+      </nav>
+    </footer>
+  </body>
+</html>
