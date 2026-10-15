@@ -12,4 +12,5 @@ python3 preview.py
 
 Then open http://localhost:8000.
 
-The stylesheet is referenced with a version query string (`styles.css?v=2`) on every page to bust CDN/browser caches; bump the version whenever you change `styles.css`.
+Third-party assets (fonts, icons) and their licenses are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
