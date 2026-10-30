@@ -173,6 +173,9 @@ h1 { font-size: clamp(37.8px, 5.49vw, 70.2px); line-height: 1.08; letter-spacing
 .copy-button[hidden] { display: none; }
 .copy-button:hover, .copy-button.is-copied { color: var(--fg); }
 .copy-button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.eyebrow .project-copy { width: 24px; height: 24px; margin-left: 4px; }
+.eyebrow .project-copy svg { width: 14px; height: 14px; }
+.eyebrow .project-copy:hover { background: rgba(255, 113, 48, 0.12); }
 .copy-icon, .copy-check { transform-origin: center; transition: opacity 180ms ease, transform 180ms ease; }
 .copy-check { opacity: 0; transform: scale(0.6); }
 .is-copied .copy-icon { opacity: 0; transform: scale(0.6); }
