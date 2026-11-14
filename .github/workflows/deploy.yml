@@ -1,0 +1,158 @@
+name: Deploy static site
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Confirm the hosting prerequisites and type DEPLOY'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # Only the latest commit message in a push is checked.
+    if: github.ref == 'refs/heads/main' && ((github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy]')) || (github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY'))
+    concurrency:
+      group: navikarana-website-deployment
+      cancel-in-progress: false
+    runs-on: ubuntu-22.04
+    env:
+      HOST: ${{ secrets.DEPLOY_HOST }}
+      PORT: ${{ secrets.DEPLOY_PORT }}
+      USERNAME: ${{ secrets.DEPLOY_USER }}
+      WEB_ROOT: ${{ secrets.DEPLOY_WEB_ROOT }}
+      SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$PORT" =~ ^[0-9]+$ ]]
+          [[ "$USERNAME" =~ ^[a-zA-Z0-9_-]+$ ]]
+          [[ "$WEB_ROOT" =~ ^/([a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$ && "$WEB_ROOT" != *..* ]]
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS"
+          install -d -m 700 "$RUNNER_TEMP/deploy-ssh"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/deploy-ssh/key" "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          cat > "$RUNNER_TEMP/deploy-ssh/config" <<EOF
+          Host website
+            HostName $HOST
+            Port $PORT
+            User $USERNAME
+            IdentityFile $RUNNER_TEMP/deploy-ssh/key
+            UserKnownHostsFile $RUNNER_TEMP/deploy-ssh/known_hosts
+            StrictHostKeyChecking yes
+            IdentitiesOnly yes
+            BatchMode yes
+          EOF
+          chmod 600 "$RUNNER_TEMP/deploy-ssh/config"
+
+      - name: Test atomic exchange without touching the live site
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -F "$RUNNER_TEMP/deploy-ssh/config" website \
+            python3 - "$WEB_ROOT" < scripts/check-exchange.py
+
+      - name: Package site and create manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          build="$RUNNER_TEMP/site-build"
+          mkdir "$build"
+          # Only the site's public files belong in the document root.
+          cp -a .htaccess 404.html favicon.ico index.html styles.css about contact projects public "$build/"
+          if find "$build" -type l -print -quit | grep -q .; then
+            echo 'Symlinks are not allowed in the deployment package.' >&2
+            exit 1
+          fi
+          printf '{"site":"navikarana-landing-page","commit":"%s","run":"%s-%s"}\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$build/deployment-version.json"
+          (cd "$build" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/deployment-manifest"
+          cp "$RUNNER_TEMP/deployment-manifest" "$build/.deployment-manifest"
+
+      - name: Upload and verify staged site
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$(dirname "$WEB_ROOT")/.navikarana-release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ssh -F "$RUNNER_TEMP/deploy-ssh/config" website "umask 022; mkdir '$stage'"
+          tar -C "$RUNNER_TEMP/site-build" -cf - . | ssh -F "$RUNNER_TEMP/deploy-ssh/config" website "tar -C '$stage' -xf -"
+          ssh -F "$RUNNER_TEMP/deploy-ssh/config" website "cd '$stage' && sha256sum -c .deployment-manifest > /dev/null"
+
+      - name: Atomically exchange live and staged directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$(dirname "$WEB_ROOT")/.navikarana-release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ssh -F "$RUNNER_TEMP/deploy-ssh/config" website \
+            python3 - "$WEB_ROOT" "$stage" < scripts/deploy-exchange.py
+
+      - name: Verify the public site
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          for attempt in {1..12}; do
+            if curl --fail --silent --show-error --max-time 10 -H 'Cache-Control: no-cache' \
+                "https://navikarana.io/deployment-version.json?run=$expected&attempt=$attempt" |
+                python3 -c 'import json,sys; v=json.load(sys.stdin); sys.exit(v.get("site") != "navikarana-landing-page" or v.get("run") != sys.argv[1] or v.get("commit") != sys.argv[2])' "$expected" "$GITHUB_SHA"; then
+              echo 'New build is being served.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Public verification failed. The previous site is retained; inspect before taking action.' >&2
+          exit 1
+
+      - name: Mark verified backup for later cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$(dirname "$WEB_ROOT")/.navikarana-release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ssh -F "$RUNNER_TEMP/deploy-ssh/config" website \
+            python3 - mark "$WEB_ROOT" "$stage" "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" < scripts/deploy-retention.py
+
+  cleanup:
+    if: github.event_name == 'schedule'
+    concurrency:
+      group: navikarana-website-deployment
+      cancel-in-progress: false
+    runs-on: ubuntu-22.04
+    env:
+      HOST: ${{ secrets.DEPLOY_HOST }}
+      PORT: ${{ secrets.DEPLOY_PORT }}
+      USERNAME: ${{ secrets.DEPLOY_USER }}
+      WEB_ROOT: ${{ secrets.DEPLOY_WEB_ROOT }}
+      SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean expired verified backups
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$PORT" =~ ^[0-9]+$ ]]
+          [[ "$USERNAME" =~ ^[a-zA-Z0-9_-]+$ ]]
+          [[ "$WEB_ROOT" =~ ^/([a-zA-Z0-9_.-]+/)*[a-zA-Z0-9_.-]+$ && "$WEB_ROOT" != *..* ]]
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS"
+          install -d -m 700 "$RUNNER_TEMP/deploy-ssh"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/deploy-ssh/key" "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          ssh -i "$RUNNER_TEMP/deploy-ssh/key" -p "$PORT" \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$RUNNER_TEMP/deploy-ssh/known_hosts" \
+            "$USERNAME@$HOST" python3 - clean "$WEB_ROOT" < scripts/deploy-retention.py
